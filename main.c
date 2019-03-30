@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "str.h"
 
 long int fsize(FILE *fp)
 {
@@ -6,34 +7,6 @@ long int fsize(FILE *fp)
 	long int fileSize = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 	return fileSize;
-}
-
-int strln(char *str)
-{
-	int ofst = 0;
-	while (*(str + ofst))
-	{
-		ofst++;
-	}
-	return ofst;
-}
-
-int streq(char *str1, char *str2)
-{
-	int ofst = 0;
-	while (*(str1 + ofst) && *(str2 + ofst)) // so far still evaluates to equal when e.g. "hello world\0" =? "hello wo\0"
-	{
-		if (*(str1 + ofst) != *(str2 + ofst))
-		{
-			return 0;
-		}
-		ofst++;
-	}
-	if (*(str1 + ofst) || *(str2 + ofst)) // if one string is longer than the other it still has a non null byte
-	{
-		return 0;
-	}
-	return 1;
 }
 
 int main(int argc, char **argv)
@@ -73,7 +46,7 @@ int main(int argc, char **argv)
 	fp = fopen(filePath, "rb");
 	if (!fp)
 	{
-		printf("no file specified or given file doesn't exist!");
+		printf("no file specified or given file doesn't exist!\n");
 		return 0;
 	}
 

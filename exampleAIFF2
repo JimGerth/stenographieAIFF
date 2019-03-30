@@ -1,6 +1,6 @@
 // 2-channel, 16-bit integer, big endian, 16.000 kHz, AIFF
 
-0000000  46 4f 52 4d  00 02 b8 fa  41 49 46 46  28 63 29 20  | FORM....AIFF(c)  // 46 4f 52 4d is a chunkID encoded in ASCII, it says 'FORM' // 00 02 b8 fa is the chunkSize of the form chunk in bytes and is 178426 in DEC // 41 49 46 46 is the formType encoded in ASCII, it says 'AIFF'
+0000000  46 4f 52 4d  00 02 b8 fa  41 49 46 46  28 63 29 20  | FORM....AIFF(c)  // 46 4f 52 4d is a chunkID encoded in ASCII, it says 'FORM' // 00 02 b8 fa is the chunkSize of the form chunk in bytes and is 178426 (+8) in DEC // 41 49 46 46 is the formType encoded in ASCII, it says 'AIFF'
 0000010  00 00 00 00  43 4f 4d 4d  00 00 00 12  00 02 00 00  | ....COMM........ // 43 4f 4d 4d is a chunkID encoded in ASCII, it says 'COMM' and thus marks the beginning of the required common chunk // 00 00 00 12 is the chunkSize of the common chunk in bytes and is 18 in DEC // 00 02 is the numChannels field and says there are 2 channels
 0000020  ae 2f 00 10  40 0c fa 00  00 00 00 00  00 00 53 53  | ./..@.........SS // 00 00 ae 2f is the numSampleFrames field and says there are 44591 sample frames // 00 10 is the sampleSize field and says that the bit depth is 16bit // 40 0c fa 00 00 00 00 00 00 00 is the sampleRate field and says that the sample rate is
 0000030  4e 44 00 02  b8 c4 00 00  00 00 00 00  00 00 03 d5  | ND.............. // 53 53 4e 44 is a chunkID encoded in ASCII, it says 'SSND' and thus marks the beginning of thr sound data chunk
