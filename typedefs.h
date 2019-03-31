@@ -6,14 +6,14 @@ typedef struct {
 
 typedef struct {
   char numChannels[2];
-  char numSampleFrames[4];
+  unsigned int numSampleFrames;
   char sampleSize[2];
   char sampleRate[10];
 } commBody;
 
 typedef struct {
   char formType[4];
-  char *chunks[10];
+  void *chunks[10];
 } formBody;
 
 typedef union {
