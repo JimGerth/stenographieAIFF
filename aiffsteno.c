@@ -15,34 +15,26 @@ unsigned long int fsize(FILE *fp) {
 chunk *parseAIFF(FILE *fp) {
   fseek(fp, 0, SEEK_SET);
 
-  ckHead *formHead = malloc(sizeof(ckHead));
-  if (!formHead) {
-    printf("error while trying to read file\n");
-    return 0;
-  }
-  fread(formHead, sizeof(ckHead), 1, fp);
-  if (!streq(formHead->ckID, "FORM")) {
+  ckHead formHead;
+  fread(&formHead, sizeof(ckHead), 1, fp);
+  if (!streq(formHead.ckID, "FORM")) {
     printf("error: not an AIFF file\n");
     return 0;
   }
 
-  formBody *formBody = malloc(sizeof(formBody));
-  if (!formBody) {
-    printf("error while trying to read file\n");
-    return 0;
-  }
-  fread(formBody, sizeof(formBody->formType), 1, fp);
-  if(!streq(formBody->formType, "AIFF")) {
+  formBody formBody;
+  fread(&formBody, sizeof(formBody.formType), 1, fp);
+  if(!streq(formBody.formType, "AIFF")) {
     printf("error: not an AIFF file\n");
     return 0;
   }
 
-  ckBody *formBodyWrapper = malloc(sizeof(ckBody));
-  formBodyWrapper->form = *formBody;
+  ckBody formBodyWrapper;
+  formBodyWrapper.form = formBody;
 
   chunk *formChunk = malloc(sizeof(chunk));
-  formChunk->head = *formHead;
-  formChunk->body = *formBodyWrapper;
+  formChunk->head = formHead;
+  formChunk->body = formBodyWrapper;
 
   while (ftell(fp) < fsize(fp)) {
     // parse ckHead
