@@ -2,31 +2,60 @@
 #include <stdlib.h>
 #include "str.h"
 #include "int.h"
+#include "typedefs.h"
 
-typedef struct {
-  char ckID[4];
-  unsigned int ckSize;
-} ckHead;
+unsigned long int fsize(FILE *fp) {
+  unsigned long int current = ftell(fp);
+	fseek(fp, 0, SEEK_END);
+	unsigned long int fileSize = ftell(fp);
+	fseek(fp, current, SEEK_SET);
+	return fileSize;
+}
 
-typedef struct {
-  ckHead ckHead;
-  char formType[4];
-  char chunks[];
-} FORM;
+chunk *parseAIFF(FILE *fp) {
+  fseek(fp, 0, SEEK_SET);
+
+  ckHead *formHead = malloc(sizeof(ckHead));
+  if (!formHead) {
+    printf("error while trying to read file\n");
+    return 0;
+  }
+  fread(formHead, sizeof(ckHead), 1, fp);
+  if (!streq(formHead->ckID, "FORM")) {
+    printf("error: not an AIFF file\n");
+    return 0;
+  }
+
+  formBody *formBody = malloc(sizeof(formBody));
+  if (!formBody) {
+    printf("error while trying to read file\n");
+    return 0;
+  }
+  fread(formBody, sizeof(formBody->formType), 1, fp);
+  if(!streq(formBody->formType, "AIFF")) {
+    printf("error: not an AIFF file\n");
+    return 0;
+  }
+
+  ckBody *formBodyWrapper = malloc(sizeof(ckBody));
+  formBodyWrapper->form = *formBody;
+
+  chunk *formChunk = malloc(sizeof(chunk));
+  formChunk->head = *formHead;
+  formChunk->body = *formBodyWrapper;
+
+  while (ftell(fp) < fsize(fp)) {
+    // parse ckHead
+    // parse appropriate ckBody
+    // if body has data[] -> malloc(ckSize), dump data there in form of char[ckSize] and add pointer to that data to ckBody
+    // also put rest of data on heap
+    fseek(fp, 1, SEEK_CUR);
+  }
+
+  return formChunk;
+}
 
 int hide(FILE *aiffFile, FILE *textFile) {
-
-  FORM formChunk;
-  fread(&formChunk, 12, 1, aiffFile);
-
-  printf("chunkID == 'FORM'? ");
-  if (streq(formChunk.ckHead.ckID, "FORM")) { printf("yes!\n"); } else { printf("no!\n"); }
-
-  printf("formType == 'AIFF'? ");
-  if (streq(formChunk.formType, "AIFF")) { printf("yes!\n"); } else { printf("no!\n"); }
-
-  printf("size of file: %u\n", flipEndianess(formChunk.ckHead.ckSize) + 8);
-
   return -1;
 }
 
@@ -50,6 +79,12 @@ int main(int argc, char **argv) {
     printf("error: problem with opening text file\n");
     return -1;
   }
+
+  chunk *formChunk = parseAIFF(aiffFile);
+  if (!formChunk) {
+    return -1;
+  }
+  printf("ckID: %s\nckSize: %s\nformType: %s\n", formChunk->head.ckID, formChunk->head.ckSize, formChunk->body.form.formType);
 
   if (hide(aiffFile, textFile)) {
     printf("error while trying to hide message\n");
