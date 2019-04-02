@@ -12,42 +12,45 @@ unsigned long int fsize(FILE *fp) {
 	return fileSize;
 }
 
+// char *data;
+// unsigned long int SSNDStart = 0;
+//
+// void readAIFF(FILE *aiffFile) {
+//   data = malloc(fsize(aiffFile));
+//   for (int i = 0; i < fsize(aiffFile); i++) {
+//     fread(data + i, sizeof(char), 1, aiffFile);
+//   }
+//   int i = 3;
+//   while (!(data[i - 3] == 'S' && data[i - 2] == 'S' && data[i-1] == 'N' && data[i] == 'D')) {
+//     i++;
+//   }
+//   SSNDStart = i -3;
+// }
+
 chunk *parseAIFF(FILE *fp) {
   fseek(fp, 0, SEEK_SET);
 
-  ckHead *formHead = malloc(sizeof(ckHead));
-  if (!formHead) {
-    printf("error while trying to read file\n");
-    return 0;
-  }
-  fread(formHead, sizeof(ckHead), 1, fp);
-  if (!streq(formHead->ckID, "FORM")) {
-    printf("error: not a valid AIFF file\n");
-    return 0;
-  }
-
-  formBody *formBody = malloc(sizeof(formBody));
-  if (!formBody) {
-    printf("error while trying to read file\n");
-    return 0;
-  }
-  fread(formBody, sizeof(formBody->formType), 1, fp);
-  if(!streq(formBody->formType, "AIFF")) {
-    printf("error: not a valid AIFF file\n");
-    return 0;
-  }
-
-  ckBody *formBodyWrapper = malloc(sizeof(ckBody));
-  formBodyWrapper->form = *formBody;
-  free(formBody);
-
   chunk *formChunk = malloc(sizeof(chunk));
-  formChunk->head = *formHead;
-  free(formHead);
-  formChunk->body = *formBodyWrapper;
-  free(formBodyWrapper);
+  if (!formChunk) {
+    printf("error while trying to read file\n");
+    return 0;
+  }
 
-  while (ftell(fp) < fsize(fp)) {
+  fread(&(formChunk->head), sizeof(ckHead), 1, fp);
+  if (!streq(formChunk->head.ckID, "FORM")) {
+    printf("error: not a valid AIFF file\n");
+    return 0;
+  }
+
+  fread(&(formChunk->body.form), sizeof(formChunk->body.form.formType), 1, fp);
+  if(!streq(formChunk->body.form.formType, "AIFF")) {
+    printf("error: not a valid AIFF file\n");
+    return 0;
+  }
+
+  int numChunks = 0;
+  const unsigned long int size = fsize(fp);
+  while (ftell(fp) < size) {
 
     chunk *chunk = malloc(sizeof(chunk));
     if (!chunk) {
@@ -55,32 +58,44 @@ chunk *parseAIFF(FILE *fp) {
       return 0;
     }
     fread(&(chunk->head), sizeof(ckHead), 1, fp);
+
     if (streq(chunk->head.ckID, "COMM")) {
       printf("found a comm chunk\n");
-      fread(&(chunk->body), sizeof(commBody), 1, fp);
-    // } else if (streq(chunk->head.ckID, "SSND")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "MARK")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "INST")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "MIDI")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "AESD")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "APPL")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "COMT")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "NAME")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "AUTH")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "(c) ")) {
-    //   free(chunk);
-    // } else if (streq(chunk->head.ckID, "ANNO")) {
-    //   free(chunk);
+      fread(&(chunk->body.comm), sizeof(commBody), 1, fp);
+    } else if (streq(chunk->head.ckID, "SSND")) {
+      printf("found a ssnd chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "MARK")) {
+      printf("found a mark chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "INST")) {
+      printf("found a inst chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "MIDI")) {
+      printf("found a midi chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "AESD")) {
+      printf("found a aesd chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "APPL")) {
+      printf("found a appl chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "COMT")) {
+      printf("found a comt chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "NAME")) {
+      printf("found a name chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "AUTH")) {
+      printf("found a auth chunk\n");
+      free(chunk);
+    } else if (streq(chunk->head.ckID, "(c) ")) {
+      printf("found a (c)  chunk\n");
+    } else if (streq(chunk->head.ckID, "ANNO")) {
+      printf("found a anno chunk\n");
+      free(chunk);
     } else {
+      printf("didn't recognize chunk\n");
       free(chunk);
       continue;
       // printf("error: not a valid AIFF file\n");
@@ -90,7 +105,8 @@ chunk *parseAIFF(FILE *fp) {
     // if body has data[] -> malloc(ckSize), dump data there in form of char[ckSize] and add pointer to that data to ckBody
 
     // add pointer to chunk in formChunk->chunks
-    formChunk->body.form.chunks[0] = chunk;
+    formChunk->body.form.chunks[numChunks] = chunk;
+    numChunks++;
   }
 
   return formChunk;
@@ -126,7 +142,9 @@ int main(int argc, char **argv) {
     return -1;
   }
   printf("ckID: %s\nckSize: %s\nformType: %s\n", formChunk->head.ckID, formChunk->head.ckSize, formChunk->body.form.formType);
-  printf("chunks[0]: %p\nnumSampleFrames: %x\n", formChunk->body.form.chunks[0], flipEndianess(((chunk *)(formChunk->body.form.chunks[0]))->body.comm.numSampleFrames));
+  printf("chunks[1]: %p\nnumSampleFrames: %x\n", formChunk->body.form.chunks[1], flipEndianess(((chunk *)(formChunk->body.form.chunks[1]))->body.comm.numSampleFrames));
+  // readAIFF(aiffFile);
+  // printf("SSNDStart: %lu\n", SSNDStart);
 
   if (hide(aiffFile, textFile)) {
     printf("error while trying to hide message\n");
